@@ -1,0 +1,1 @@
+# HA-Esp32-Window-Sensor
