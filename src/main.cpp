@@ -16,16 +16,16 @@ void sensor3_interrupt();
 
 
 //Buzzer
-int buzzer = 16;
+#define buzzer 16
 
 //Buttons
 // ON Button
-int onButton = 15;
+#define onButton 15
 
 // ALARM Button
+#define alarmButton  23
 bool alarmState = false;
 bool previousalarmState = false;
-int alarmButton = 23;
 volatile int InterruptalarmButtonstate = 0;
 int alarmButtonDebouncetime = 40;
 int lastalarmButtonState = 0;
@@ -36,10 +36,10 @@ bool NotiMode = false;
 bool alarmAndNoti = false;
 
 //LED's
-int onLEDgreen = 2;
+#define onLEDgreen 2
 bool onLEDstate = HIGH;
-int alarmLEDred = 4;
-int alarmLEDblue = 17;
+#define alarmLEDred 4
+#define alarmLEDblue 17
 
 //Sleep Mode
 RTC_DATA_ATTR bool sleepMode = false;
@@ -50,11 +50,11 @@ bool entered = false;
 bool resetentered = false;
 
 //Sensors
-int sensor_1 = 5;
+#define sensor_1 5
 bool window_1 = false;
-int sensor_2 = 18;
+#define sensor_2 18
 bool window_2 = false;
-int sensor_3 = 19;
+#define sensor_3 19
 bool window_3 = false;
 
 //State Maschine
@@ -79,6 +79,7 @@ void setup() {
   Serial.begin(115200);
   Serial.print("Started...");
   digitalWrite(onLEDgreen, onLEDstate);
+  analogWrite(buzzer, 0);
   oledSetup();
 }
 
