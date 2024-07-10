@@ -128,7 +128,6 @@ if(alarmState != previousalarmState && alarmtype == 2){
   alarmtype = 0;
   previousalarmState = alarmState;
 }
-
 }
 
 
