@@ -13,7 +13,7 @@ void oledSetup(){
     Serial.println(F("SSD1306 allocation failed"));
     for(;;);
   }
-
+  
   display.clearDisplay();
   
   display.setTextSize(4);    

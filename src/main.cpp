@@ -12,8 +12,7 @@ void alarmButtonPressed();
 void IRAM_ATTR buttonISR();
 void sensor1_interrupt();
 void sensor2_interrupt();
-void sensor3_interrupt();
-
+void tap_sensor_interrupt();
 
 //Buzzer
 #define buzzer 16
@@ -54,13 +53,20 @@ bool resetentered = false;
 bool window_1 = false;
 #define sensor_2 18
 bool window_2 = false;
-#define sensor_3 19
-bool window_3 = false;
+//Wake up on Tap
+#define tap_sensor 19
+bool tapped = false;
+unsigned long awaketime;
+int awaketimeduration = 5000;
+bool resettapped = false;
+
 
 //State Maschine
 int alarmtype = 0;
 
 void setup() {
+  oledSetup();
+  Serial.begin(115200);
   sleepMode = false;
   pinMode(buzzer, OUTPUT);
   pinMode(onLEDgreen, OUTPUT);
@@ -70,20 +76,18 @@ void setup() {
   pinMode(alarmButton, INPUT_PULLDOWN);
   pinMode(sensor_1, INPUT_PULLDOWN);
   pinMode(sensor_2, INPUT_PULLDOWN);
-  pinMode(sensor_3, INPUT_PULLDOWN);
+  pinMode(tap_sensor, INPUT_PULLDOWN);
   attachInterrupt(digitalPinToInterrupt(sensor_1), sensor1_interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(sensor_2), sensor2_interrupt, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(sensor_3), sensor3_interrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(tap_sensor), tap_sensor_interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(onButton), onButtonPressed, CHANGE);
   attachInterrupt(digitalPinToInterrupt(alarmButton), alarmButtonPressed, CHANGE);
-  Serial.begin(115200);
   Serial.print("Started...");
   digitalWrite(onLEDgreen, onLEDstate);
   analogWrite(buzzer, 0);
-  oledSetup();
 }
 
-void loop() {
+void loop() { 
   sleep();
   buttons(alarmButton, alarmState, InterruptalarmButtonstate, alarmButtonDebouncetime, lastalarmButtonState, alarmButtonlastPress);
   //Serial.println("press:" +  String(digitalRead(alarmButton)));
@@ -91,11 +95,9 @@ void loop() {
   delay(50);
   window_Sensors(window_1, buzzer, alarmAndNoti);
   window_Sensors(window_2, buzzer, alarmAndNoti);
-  window_Sensors(window_3, buzzer, alarmAndNoti);
-  Serial.println("sensor1: " + String(window_1));
-  Serial.println("sensor2: " + String(window_2));
-  Serial.println("sensor3: " + String(window_3));
-
+  //Serial.println("sensor1: " + String(window_1));
+  //Serial.println("sensor2: " + String(window_2));
+  Serial.println("sensor3: " + String(tapped));
   switch (alarmtype)
   {
   case 0:
@@ -128,6 +130,7 @@ if(alarmState != previousalarmState && alarmtype == 2){
   alarmtype = 0;
   previousalarmState = alarmState;
 }
+tapping_sensor(tap_sensor, tapped, resettapped, awaketime, awaketimeduration);
 }
 
 
@@ -148,9 +151,11 @@ void sensor2_interrupt() {
 window_2 = !window_2;
 }
 
-void sensor3_interrupt() {
-window_3 = !window_3;
+void tap_sensor_interrupt() {
+tapped = true;
+resettapped = true;
 }
+
 
 
 void sleep(){
@@ -190,3 +195,4 @@ if (sleepMode && digitalRead(onButton) == HIGH) {
     resetentered = true;
   }
 }
+
