@@ -6,13 +6,16 @@
 #include <interactive_Elements.h>
 #include <oled_Display.h>
 
-void sleep();
+void deep_sleep();
 void onButtonPressed();
 void alarmButtonPressed();
 void IRAM_ATTR buttonISR();
 void sensor1_interrupt();
 void sensor2_interrupt();
 void tap_sensor_interrupt();
+void turn_off_periph();
+void tapping_sensor();
+void reset_sleep_timer();
 
 //Buzzer
 #define buzzer 16
@@ -35,12 +38,12 @@ bool NotiMode = false;
 bool alarmAndNoti = false;
 
 //LED's
-#define onLEDgreen 2
+#define onLEDgreen 19
 bool onLEDstate = HIGH;
 #define alarmLEDred 4
 #define alarmLEDblue 17
 
-//Sleep Mode
+//Deep Sleep Mode
 RTC_DATA_ATTR bool sleepMode = false;
 unsigned long currenttime;
 int waittime = 3000;
@@ -54,12 +57,11 @@ bool window_1 = false;
 #define sensor_2 18
 bool window_2 = false;
 //Wake up on Tap
-#define tap_sensor 19
-bool tapped = false;
+#define tap_sensor 2
+bool tapped = true;
 unsigned long awaketime;
-int awaketimeduration = 5000;
-bool resettapped = false;
-
+int awaketimeduration = 10000;
+bool resettapped = true;
 
 //State Maschine
 int alarmtype = 0;
@@ -88,7 +90,7 @@ void setup() {
 }
 
 void loop() { 
-  sleep();
+  deep_sleep();
   buttons(alarmButton, alarmState, InterruptalarmButtonstate, alarmButtonDebouncetime, lastalarmButtonState, alarmButtonlastPress);
   //Serial.println("press:" +  String(digitalRead(alarmButton)));
   //Serial.println("lastpress: " + String(lastonButtonState));
@@ -97,7 +99,7 @@ void loop() {
   window_Sensors(window_2, buzzer, alarmAndNoti);
   //Serial.println("sensor1: " + String(window_1));
   //Serial.println("sensor2: " + String(window_2));
-  Serial.println("sensor3: " + String(tapped));
+  //Serial.println("sensor3: " + String(tapped));
   switch (alarmtype)
   {
   case 0:
@@ -130,17 +132,20 @@ if(alarmState != previousalarmState && alarmtype == 2){
   alarmtype = 0;
   previousalarmState = alarmState;
 }
-tapping_sensor(tap_sensor, tapped, resettapped, awaketime, awaketimeduration);
+tapping_sensor();
+Serial.println(awaketime);
 }
 
 
 //Interrupt Functions
 void onButtonPressed (){
   sleepMode = true;
+  reset_sleep_timer();
 }
 
 void alarmButtonPressed (){
   InterruptalarmButtonstate = 1;
+  reset_sleep_timer();
 }
 
 void sensor1_interrupt() {
@@ -154,11 +159,12 @@ window_2 = !window_2;
 void tap_sensor_interrupt() {
 tapped = true;
 resettapped = true;
+reset_sleep_timer();
 }
 
 
 
-void sleep(){
+void deep_sleep(){
 if (sleepMode && digitalRead(onButton) == HIGH) {
   if(!entered){
   currenttime = millis();
@@ -196,3 +202,42 @@ if (sleepMode && digitalRead(onButton) == HIGH) {
   }
 }
 
+void turn_off_periph(){
+    digitalWrite(onLEDgreen, LOW);
+    digitalWrite(alarmLEDred, LOW);
+    digitalWrite(alarmLEDblue, LOW);
+
+    analogWrite(buzzer, 0);
+
+    turnOffDisplay();
+}
+
+void turn_on_periph(){
+  digitalWrite(onLEDgreen, HIGH);
+  turnONDisplay();
+}
+
+
+void tapping_sensor(){
+  if(tapped && resettapped){
+    awaketime = millis();
+    resettapped = false;
+    turn_on_periph();
+  } else if( millis() >= awaketime + awaketimeduration){
+      tapped = false;
+    Serial.println("Entering light sleep...");
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)tap_sensor, HIGH);
+    esp_sleep_enable_ext1_wakeup(1ULL << sensor_2, ESP_EXT1_WAKEUP_ANY_HIGH);
+    esp_sleep_enable_ext1_wakeup(1ULL << sensor_1, ESP_EXT1_WAKEUP_ANY_HIGH);
+    esp_sleep_enable_ext1_wakeup(1ULL << onButton, ESP_EXT1_WAKEUP_ANY_HIGH);
+    esp_sleep_enable_ext1_wakeup(1ULL << alarmButton, ESP_EXT1_WAKEUP_ANY_HIGH);
+    turn_off_periph();
+    delay(100);
+    esp_light_sleep_start();
+    Serial.println("Woke up from light sleep");
+    }
+}
+
+void reset_sleep_timer(){
+  awaketime = millis();
+}

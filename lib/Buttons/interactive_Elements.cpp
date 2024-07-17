@@ -25,12 +25,3 @@ void window_Sensors(int windowsensor, int buzzer, bool &alarmtype){
       analogWrite(buzzer, 0);
     }
 }
-
-void tapping_sensor(int tap_sensor, bool &tapped, bool &reset_tap, unsigned long &onwakeuptime, int awaketimeduration){
-  if(tapped && reset_tap){
-    onwakeuptime = millis();
-    reset_tap = false;
-  } else if( millis() >= onwakeuptime + awaketimeduration){
-      tapped = false;
-    }
-}
