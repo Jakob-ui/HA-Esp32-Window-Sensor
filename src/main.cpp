@@ -56,12 +56,14 @@ bool resetentered = false;
 bool window_1 = false;
 #define sensor_2 18
 bool window_2 = false;
+
 //Wake up on Tap
 #define tap_sensor 2
 bool tapped = true;
 unsigned long awaketime;
 int awaketimeduration = 10000;
 bool resettapped = true;
+bool lightsleepmodeActivated = false;
 
 //State Maschine
 int alarmtype = 0;
@@ -133,7 +135,6 @@ if(alarmState != previousalarmState && alarmtype == 2){
   previousalarmState = alarmState;
 }
 tapping_sensor();
-Serial.println(awaketime);
 }
 
 
@@ -202,6 +203,7 @@ if (sleepMode && digitalRead(onButton) == HIGH) {
   }
 }
 
+
 void turn_off_periph(){
     digitalWrite(onLEDgreen, LOW);
     digitalWrite(alarmLEDred, LOW);
@@ -219,6 +221,7 @@ void turn_on_periph(){
 
 
 void tapping_sensor(){
+  if(lightsleepmodeActivated){ //---------------------------------- To run light sleep Mode delete Line -----------------------------
   if(tapped && resettapped){
     awaketime = millis();
     resettapped = false;
@@ -237,7 +240,9 @@ void tapping_sensor(){
     Serial.println("Woke up from light sleep");
     }
 }
+}
 
 void reset_sleep_timer(){
   awaketime = millis();
 }
+
