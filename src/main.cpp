@@ -32,6 +32,7 @@ volatile int InterruptalarmButtonstate = 0;
 int alarmButtonDebouncetime = 40;
 int lastalarmButtonState = 0;
 unsigned long alarmButtonlastPress;
+bool alarmtriggered = false;
 
 //Alarm Settings
 bool NotiMode = false;
@@ -97,8 +98,8 @@ void loop() {
   //Serial.println("press:" +  String(digitalRead(alarmButton)));
   //Serial.println("lastpress: " + String(lastonButtonState));
   delay(50);
-  window_Sensors(window_1, buzzer, alarmAndNoti);
-  window_Sensors(window_2, buzzer, alarmAndNoti);
+  window_Sensors(window_1, buzzer, alarmAndNoti, alarmtriggered);
+  window_Sensors(window_2, buzzer, alarmAndNoti, alarmtriggered);
   //Serial.println("sensor1: " + String(window_1));
   //Serial.println("sensor2: " + String(window_2));
   //Serial.println("sensor3: " + String(tapped));
@@ -142,11 +143,13 @@ tapping_sensor();
 void onButtonPressed (){
   sleepMode = true;
   reset_sleep_timer();
+  alarmtriggered = false;
 }
 
 void alarmButtonPressed (){
   InterruptalarmButtonstate = 1;
   reset_sleep_timer();
+  alarmtriggered = false;
 }
 
 void sensor1_interrupt() {
@@ -158,9 +161,10 @@ window_2 = !window_2;
 }
 
 void tap_sensor_interrupt() {
-tapped = true;
-resettapped = true;
-reset_sleep_timer();
+  alarmtriggered = false;
+  tapped = true;
+  resettapped = true;
+  reset_sleep_timer();
 }
 
 
@@ -193,7 +197,7 @@ if (sleepMode && digitalRead(onButton) == HIGH) {
     esp_sleep_enable_ext0_wakeup((gpio_num_t)onButton, HIGH); 
     analogWrite(buzzer, 0);
     digitalWrite(onLEDgreen, LOW);
-    delay(2000);                                 
+    delay(1000);                                 
     esp_deep_sleep_start(); 
   } else if(digitalRead(onButton) == LOW && !resetentered){
     digitalWrite(onLEDgreen, HIGH);

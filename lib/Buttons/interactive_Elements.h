@@ -3,6 +3,6 @@
 #include <Arduino.h>
 
 void buttons(int buttonpin, bool &globalstate, volatile int &interruptstate, int debounceTime, int &lastButtonState, unsigned long &lastPress);
-void window_Sensors(int someSensor, int buzzer, bool &alarmtype);
+void window_Sensors(int someSensor, int buzzer, bool &alarmtype, bool &triggered);
 
 #endif

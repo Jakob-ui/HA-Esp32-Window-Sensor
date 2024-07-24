@@ -26,7 +26,7 @@ void oledSetup(){
   display.setCursor(x, y);    
   display.write('J');
   display.display(); 
-  delay(4000);
+  delay(2000);
   
   display.clearDisplay();
   display.display();
