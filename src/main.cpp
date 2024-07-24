@@ -86,9 +86,6 @@ String icon_window_2 = "mdi:fire";
 
 void setup() {
   oledSetup();
-  mqttsetup();
-  sensorSetup(windowSensor_1,sensor_1 , window_1, name_window_1, device_window_1, icon_window_1);
-  sensorSetup(windowSensor_2,sensor_2 , window_2, name_window_2, device_window_2, icon_window_2);
   Serial.begin(115200);
   sleepMode = false;
   pinMode(buzzer, OUTPUT);
@@ -108,6 +105,9 @@ void setup() {
   Serial.print("Started...");
   digitalWrite(onLEDgreen, onLEDstate);
   analogWrite(buzzer, 0);
+  mqttsetup();
+  sensorSetup(windowSensor_1,sensor_1 , window_1, name_window_1, device_window_1, icon_window_1);
+  sensorSetup(windowSensor_2,sensor_2 , window_2, name_window_2, device_window_2, icon_window_2);
   lastInputState_1 = digitalRead(sensor_1);
   lastInputState_2 = digitalRead(sensor_2);
 }
@@ -122,7 +122,7 @@ void loop() {
   window_Sensors(window_1, buzzer, alarmAndNoti, alarmtriggered);
   window_Sensors(window_2, buzzer, alarmAndNoti, alarmtriggered);
   //Serial.println("sensor1: " + String(window_1));
-  Serial.println(digitalRead(sensor_1));
+  //Serial.println(digitalRead(sensor_1));
   //Serial.println("sensor2: " + String(window_2));
   //Serial.println("sensor3: " + String(tapped));
   switch (alarmtype)

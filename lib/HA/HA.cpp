@@ -1,5 +1,7 @@
 #include <HA.h>
 
+void onDisconnected();
+
 #define BROKER_ADDR     IPAddress(192,168,68,104)
 
 byte mac[] = {0x00, 0x10, 0xFA, 0x6E, 0x38, 0x4A};
@@ -14,8 +16,12 @@ String mqtt_user = "user";
 String mqtt_password= "password";
 int port = 1883;
 
-const char* ssid = "Wlan-SSID";          
-const char* pass = "Wlan-Password";
+const char* ssid = "user";          
+const char* pass = "password";
+
+int timeout;
+int timeouttime;
+bool wlanflag;
 
 void mqttsetup()
 {
@@ -29,14 +35,27 @@ void mqttsetup()
 
   device.setName("Window_Sensor");
   device.setSoftwareVersion("1.0.1");
+  mqtt.onDisconnected(onDisconnected);
 
   mqtt.begin(BROKER_ADDR, port, mqtt_user.c_str(), mqtt_password.c_str());
   
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.print('.');
-    delay(500);
+    if(timeout <= 4){
+    timeout ++;
+    timeouttime = 0;
+    WlanConnecting("Wifi connect", 4000);
+    delay(200);
+    }else{
+      WlanConnectionFailed();
+      updateDisplay();
+      Serial.println("Connection failed");
+      delay(400);
+      timeouttime++;
+      if(timeouttime >= 5){
+        timeout = 0;
+      }
   }
-  Serial.println("Connected!");
+}
 }
 
 void sensorSetup(HABinarySensor sensor, int pin, bool state, String sensor_name, String sensor_device, String sensor_icon){
@@ -47,14 +66,14 @@ void sensorSetup(HABinarySensor sensor, int pin, bool state, String sensor_name,
 }
 
 void sensorUpdate(HABinarySensor sensor, int pin){ 
-  if(digitalRead(pin) == HIGH) 
-  sensor.setState(true);
-  else 
-  sensor.setState(false);
-   
+  sensor.setState(digitalRead(pin), true);
 }
 
 
 void mqttloop() {
    mqtt.loop();
+}
+
+void onDisconnected(){
+  MqttDisconnect("Mqtt Disconnected");
 }
