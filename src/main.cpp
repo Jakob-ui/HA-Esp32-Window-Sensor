@@ -1,10 +1,11 @@
 #include <Arduino.h>
-#include <spi.h>
+#include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 #include <interactive_Elements.h>
 #include <oled_Display.h>
+#include <Ha.h>
 
 void deep_sleep();
 void onButtonPressed();
@@ -69,8 +70,23 @@ bool lightsleepmodeActivated = false;
 //State Maschine
 int alarmtype = 0;
 
+
+//MQTT Sensors
+HABinarySensor windowSensor_1 ("windowSensor_1");
+String name_window_1 = "window_1";
+String device_window_1 = "window";
+String icon_window_1 = "mdi:fire";
+
+HABinarySensor windowSensor_2 ("windowSensor_2");
+String name_window_2 = "window_2";
+String device_window_2 = "window";
+String icon_window_2 = "mdi:fire";
+
 void setup() {
   oledSetup();
+  mqttsetup();
+  sensorSetup(windowSensor_1, window_1, name_window_1, device_window_1, icon_window_1);
+  sensorSetup(windowSensor_2, window_2, name_window_2, device_window_2, icon_window_2);
   Serial.begin(115200);
   sleepMode = false;
   pinMode(buzzer, OUTPUT);
@@ -92,7 +108,8 @@ void setup() {
   analogWrite(buzzer, 0);
 }
 
-void loop() { 
+void loop() {
+  mqttloop();
   deep_sleep();
   buttons(alarmButton, alarmState, InterruptalarmButtonstate, alarmButtonDebouncetime, lastalarmButtonState, alarmButtonlastPress);
   //Serial.println("press:" +  String(digitalRead(alarmButton)));
