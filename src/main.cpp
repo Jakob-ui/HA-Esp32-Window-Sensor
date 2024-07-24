@@ -56,8 +56,10 @@ bool resetentered = false;
 //Sensors
 #define sensor_1 5
 bool window_1 = false;
+bool lastInputState_1;
 #define sensor_2 18
 bool window_2 = false;
+bool lastInputState_2;
 
 //Wake up on Tap
 #define tap_sensor 2
@@ -85,8 +87,8 @@ String icon_window_2 = "mdi:fire";
 void setup() {
   oledSetup();
   mqttsetup();
-  sensorSetup(windowSensor_1, window_1, name_window_1, device_window_1, icon_window_1);
-  sensorSetup(windowSensor_2, window_2, name_window_2, device_window_2, icon_window_2);
+  sensorSetup(windowSensor_1,sensor_1 , window_1, name_window_1, device_window_1, icon_window_1);
+  sensorSetup(windowSensor_2,sensor_2 , window_2, name_window_2, device_window_2, icon_window_2);
   Serial.begin(115200);
   sleepMode = false;
   pinMode(buzzer, OUTPUT);
@@ -106,6 +108,8 @@ void setup() {
   Serial.print("Started...");
   digitalWrite(onLEDgreen, onLEDstate);
   analogWrite(buzzer, 0);
+  lastInputState_1 = digitalRead(sensor_1);
+  lastInputState_2 = digitalRead(sensor_2);
 }
 
 void loop() {
@@ -118,6 +122,7 @@ void loop() {
   window_Sensors(window_1, buzzer, alarmAndNoti, alarmtriggered);
   window_Sensors(window_2, buzzer, alarmAndNoti, alarmtriggered);
   //Serial.println("sensor1: " + String(window_1));
+  Serial.println(digitalRead(sensor_1));
   //Serial.println("sensor2: " + String(window_2));
   //Serial.println("sensor3: " + String(tapped));
   switch (alarmtype)
@@ -153,8 +158,9 @@ if(alarmState != previousalarmState && alarmtype == 2){
   previousalarmState = alarmState;
 }
 tapping_sensor();
+sensorUpdate(windowSensor_1, sensor_1);
+sensorUpdate(windowSensor_2, sensor_2);
 }
-
 
 //Interrupt Functions
 void onButtonPressed (){

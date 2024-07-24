@@ -39,14 +39,19 @@ void mqttsetup()
   Serial.println("Connected!");
 }
 
-void sensorSetup(HABinarySensor sensor, bool state, String sensor_name, String sensor_device, String sensor_icon){
+void sensorSetup(HABinarySensor sensor, int pin, bool state, String sensor_name, String sensor_device, String sensor_icon){
   sensor.setCurrentState(state);
   sensor.setName("Button");
   sensor.setDeviceClass("door");
   sensor.setIcon("mdi:fire");
 }
-void sensorUpdate(){
-  
+
+void sensorUpdate(HABinarySensor sensor, int pin){ 
+  if(digitalRead(pin) == HIGH) 
+  sensor.setState(true);
+  else 
+  sensor.setState(false);
+   
 }
 
 
