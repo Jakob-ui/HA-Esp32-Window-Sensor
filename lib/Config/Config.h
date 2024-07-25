@@ -1,18 +1,15 @@
+#pragma once
 #include <ArduinoJson.h>
 #include <IPAddress.h>
 #include <stdint.h>
-/*
-class Secrets
+
+struct Secrets
 {
-    public:
-        Secrets();
-        void deserializeJsondoc();
-
-    int port;
-    String mqtt_user;
-    String mqtt_password;
-
     String ssid;
     String pass;
+    String mqtt_user;
+    String mqtt_password;
+    int port;
 };
-*/
+
+bool deserializeJsondoc(Secrets* secrets);

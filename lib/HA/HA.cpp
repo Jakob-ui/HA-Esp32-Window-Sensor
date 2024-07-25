@@ -12,32 +12,29 @@ WiFiClient client;
 HADevice device(mac, sizeof(mac));
 HAMqtt mqtt(client, device);
 
-String mqtt_user = "user";
-String mqtt_password= "password";
-int port = 1883;
-
-const char* ssid = "Wlan-SSID";          
-const char* pass = "Wlan-password";
-
 int timeout;
 int timeouttime;
 bool wlanflag;
 
-void mqttsetup()
+void mqttsetup(Secrets* config)
 {
+
   WiFi.macAddress(mac);
   device.setUniqueId(mac, sizeof(mac));
   device.enableSharedAvailability();
   device.enableLastWill();
 
   Serial.begin(115200);
-  WiFi.begin(ssid, pass);
+  WiFi.begin(config->ssid,config->pass);
 
   device.setName("Window_Sensor");
   device.setSoftwareVersion("1.0.1");
   mqtt.onDisconnected(onDisconnected);
 
-  mqtt.begin(BROKER_ADDR, port, mqtt_user.c_str(), mqtt_password.c_str());
+  if(mqtt.begin(BROKER_ADDR, config->port, config->mqtt_user.c_str(), config->mqtt_password.c_str()) == false){
+    Serial.println("Connection with MQTT Broker failed");
+    MqttDisconnect("MQTT Failed");
+  }
   
   while (WiFi.status() != WL_CONNECTED) {
     if(timeout <= 4){

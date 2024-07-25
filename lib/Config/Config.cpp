@@ -1,47 +1,38 @@
 #include <FS.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
-/*
-class Secrets {
-public:
-  int port;
-  String mqtt_user;
-  String mqtt_password;
-  String ssid;
-  String pass;
+#include "Config.h"
 
-  Secrets() : port(0), mqtt_user(""), mqtt_password(""), ssid(""), pass("") {}
-
-  void deserializeJsondoc() {
+  bool deserializeJsondoc(Secrets* secrets) {
     if (!SPIFFS.begin(true)) {
       Serial.println("An error has occurred while mounting SPIFFS");
-      return;
+      return false;
     }
     
     File file = SPIFFS.open("/Secrets.json", "r");
     if (!file || file.isDirectory()) {
       Serial.println("Failed to open file for reading");
-      return;
+      return false;
     }
 
-    StaticJsonDocument<256> doc;
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, file);
     
     if (error) {
       Serial.print("deserializeJson() failed: ");
       Serial.println(error.c_str());
-      return;
+      return false;
     }
 
-    this->mqtt_user = doc["MQtt"][0]["user"].as<String>();
-    this->mqtt_password = doc["MQtt"][0]["password"].as<String>(); 
+    secrets->mqtt_user = doc["MQtt"]["user"].as<String>();
+    secrets->mqtt_password = doc["MQtt"]["password"].as<String>(); 
 
-    JsonObject wlan = doc["Wlan"][0];
-    this->port = wlan["port"].as<int>();
-    this->ssid = wlan["ssid"].as<String>();
-    this->pass = wlan["pass"].as<String>();
+    JsonObject wlan = doc["Wlan"];
+    secrets->port = wlan["port"].as<int>();
+    secrets->ssid = wlan["ssid"].as<String>();
+    secrets->pass = wlan["pass"].as<String>();
 
     file.close();
+    return true;
   }
-};
-*/
+

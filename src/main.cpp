@@ -3,9 +3,10 @@
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
-#include <interactive_Elements.h>
-#include <oled_Display.h>
-#include <Ha.h>
+#include "interactive_Elements.h"
+#include "oled_Display.h"
+#include "Ha.h"
+#include "Config.h"
 
 void deep_sleep();
 void onButtonPressed();
@@ -62,7 +63,7 @@ bool tapped = true;
 unsigned long awaketime;
 int awaketimeduration = 10000;
 bool resettapped = true;
-bool lightsleepmodeActivated = true;
+bool lightsleepmodeActivated = false;
 
 //Sensors#
 //Sensor 1
@@ -75,6 +76,8 @@ bool window_2 = false;
 //state machine
 int alarmtype = 0;
 
+//Json Daten
+struct Secrets config;
 
 //MQTT Sensors
 //Sensor 1
@@ -118,7 +121,8 @@ void setup() {
   Serial.print("Started...");
   digitalWrite(onLEDgreen, onLEDstate);
   analogWrite(buzzer, 0);
-  mqttsetup();
+  deserializeJsondoc(&config);
+  mqttsetup(&config);
   sensorSetup(windowSensor_1, window_1, name_window_1, device_window_1, icon_window_1);
   sensorSetup(windowSensor_2, window_2, name_window_2, device_window_2, icon_window_2);
   sensorSetup(notification, NotiMode, name_notification, device_notification, icon_notification);
