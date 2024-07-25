@@ -16,8 +16,8 @@ String mqtt_user = "user";
 String mqtt_password= "password";
 int port = 1883;
 
-const char* ssid = "user";          
-const char* pass = "password";
+const char* ssid = "Wlan-SSID";          
+const char* pass = "Wlan-password";
 
 int timeout;
 int timeouttime;
@@ -58,15 +58,15 @@ void mqttsetup()
 }
 }
 
-void sensorSetup(HABinarySensor sensor, int pin, bool state, String sensor_name, String sensor_device, String sensor_icon){
+void sensorSetup(HABinarySensor sensor, bool state, const char* sensor_name, const char* sensor_device, const char* sensor_icon){
   sensor.setCurrentState(state);
-  sensor.setName("Button");
-  sensor.setDeviceClass("door");
-  sensor.setIcon("mdi:fire");
+  sensor.setName(sensor_name);
+  sensor.setDeviceClass(sensor_device);
+  sensor.setIcon(sensor_icon);
 }
 
-void sensorUpdate(HABinarySensor sensor, int pin){ 
-  sensor.setState(digitalRead(pin), true);
+void sensorUpdate(HABinarySensor sensor, bool state){ 
+  sensor.setState(state, true);
 }
 
 

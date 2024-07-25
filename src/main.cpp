@@ -40,11 +40,14 @@ bool NotiMode = false;
 bool alarmAndNoti = false;
 
 //LED's
+//Power LED
 #define onLEDgreen 19
 bool onLEDstate = HIGH;
+//Alarm LED
 #define alarmLEDred 4
 #define alarmLEDblue 17
 
+//Sleep Modes
 //Deep Sleep Mode
 RTC_DATA_ATTR bool sleepMode = false;
 unsigned long currenttime;
@@ -53,41 +56,51 @@ unsigned long buttonPressDuration;
 bool entered = false;
 bool resetentered = false;
 
-//Sensors
-#define sensor_1 5
-bool window_1 = false;
-bool lastInputState_1;
-#define sensor_2 18
-bool window_2 = false;
-bool lastInputState_2;
-
-//Wake up on Tap
+//Light Sleep + Wake up on Tap
 #define tap_sensor 2
 bool tapped = true;
 unsigned long awaketime;
 int awaketimeduration = 10000;
 bool resettapped = true;
-bool lightsleepmodeActivated = false;
+bool lightsleepmodeActivated = true;
 
-//State Maschine
+//Sensors#
+//Sensor 1
+#define sensor_1 5
+bool window_1 = false;
+//Sensor 2
+#define sensor_2 18
+bool window_2 = false;
+
+//state machine
 int alarmtype = 0;
 
 
 //MQTT Sensors
+//Sensor 1
 HABinarySensor windowSensor_1 ("windowSensor_1");
-String name_window_1 = "window_1";
-String device_window_1 = "window";
-String icon_window_1 = "mdi:fire";
+const char* name_window_1 = "window_1";
+const char* device_window_1 = "window";
+const char* icon_window_1 = "mdi:window-closed-variant";
 
+//Sensor 2
 HABinarySensor windowSensor_2 ("windowSensor_2");
-String name_window_2 = "window_2";
-String device_window_2 = "window";
-String icon_window_2 = "mdi:fire";
+const char* name_window_2 = "window_2";
+const char* device_window_2 = "window";
+const char* icon_window_2 = "mdi:window-closed-variant";
+
+//Alarm Mode
+HABinarySensor notification ("Notification");
+const char* name_notification = "notification";
+const char* device_notification = "None";
+const char* icon_notification = "mdi:alert-circle-check-outline";
+
+
 
 void setup() {
   oledSetup();
   Serial.begin(115200);
-  sleepMode = false;
+  sleepMode = false;  //reset sleepmode on startup
   pinMode(buzzer, OUTPUT);
   pinMode(onLEDgreen, OUTPUT);
   pinMode(alarmLEDred, OUTPUT); 
@@ -106,49 +119,45 @@ void setup() {
   digitalWrite(onLEDgreen, onLEDstate);
   analogWrite(buzzer, 0);
   mqttsetup();
-  sensorSetup(windowSensor_1,sensor_1 , window_1, name_window_1, device_window_1, icon_window_1);
-  sensorSetup(windowSensor_2,sensor_2 , window_2, name_window_2, device_window_2, icon_window_2);
-  lastInputState_1 = digitalRead(sensor_1);
-  lastInputState_2 = digitalRead(sensor_2);
+  sensorSetup(windowSensor_1, window_1, name_window_1, device_window_1, icon_window_1);
+  sensorSetup(windowSensor_2, window_2, name_window_2, device_window_2, icon_window_2);
+  sensorSetup(notification, NotiMode, name_notification, device_notification, icon_notification);
 }
 
 void loop() {
   mqttloop();
   deep_sleep();
   buttons(alarmButton, alarmState, InterruptalarmButtonstate, alarmButtonDebouncetime, lastalarmButtonState, alarmButtonlastPress);
-  //Serial.println("press:" +  String(digitalRead(alarmButton)));
-  //Serial.println("lastpress: " + String(lastonButtonState));
-  delay(50);
+  delay(10);
   window_Sensors(window_1, buzzer, alarmAndNoti, alarmtriggered);
   window_Sensors(window_2, buzzer, alarmAndNoti, alarmtriggered);
-  //Serial.println("sensor1: " + String(window_1));
-  //Serial.println(digitalRead(sensor_1));
-  //Serial.println("sensor2: " + String(window_2));
-  //Serial.println("sensor3: " + String(tapped));
+
   switch (alarmtype)
   {
-  case 0:
+  case 0: //Changes Mode to Disarmed
     digitalWrite(alarmLEDred, LOW);
     digitalWrite(alarmLEDblue, LOW);
     NotiMode = false;
-    alarmAndNoti = false;
-    displayCenteredText("Disarmed!", 2);
+    alarmAndNoti = false; 
+    displayCenteredText("Disarmed!", 2, alarmAndNoti);
     break;
-  case 1:
+  case 1: //Changes Mode to Alarm!
     digitalWrite(alarmLEDred, LOW);
     digitalWrite(alarmLEDblue, HIGH);
-    NotiMode = true;
-    alarmAndNoti = false;
-    displayCenteredText("Alarm!", 2);
+    NotiMode = true; 
+    alarmAndNoti = false; 
+    displayCenteredText("Alarm!", 2, alarmAndNoti);
     break;
-  case 2:
+  case 2: //Changes Mode to Alarm and Alert
     digitalWrite(alarmLEDred, HIGH);
     digitalWrite(alarmLEDblue, LOW);
     NotiMode = true;
     alarmAndNoti = true;
-    displayCenteredText("Alarm and Alert", 1);
+    displayCenteredText("Alarm and Alert", 1, alarmAndNoti);
     break;
 }
+
+//Handling changes in state machine
 if(alarmState != previousalarmState && alarmtype < 2){
   alarmtype ++;
   previousalarmState = alarmState;
@@ -157,12 +166,25 @@ if(alarmState != previousalarmState && alarmtype == 2){
   alarmtype = 0;
   previousalarmState = alarmState;
 }
-tapping_sensor();
-sensorUpdate(windowSensor_1, sensor_1);
-sensorUpdate(windowSensor_2, sensor_2);
+
+tapping_sensor(); //Run the light sleep function + wake up
+sensorUpdate(windowSensor_1, window_1);
+sensorUpdate(windowSensor_2, window_2);
+sensorUpdate(notification, NotiMode);
+
+//---------------------------Debug-----------------------------
+  //Serial.println("press:" +  String(digitalRead(alarmButton)));
+  //Serial.println("lastpress: " + String(lastonButtonState));
+  //Serial.println("sensor1: " + String(window_1));
+  //Serial.println(digitalRead(sensor_1));
+  //Serial.println("sensor2: " + String(window_2));
+  //Serial.println("sensor3: " + String(tapped));
+  //Serial.println("buttonPressDuration: " + String(buttonPressDuration));
+  //Serial.println("currenttime: " + String(currenttime));
+  //Serial.println("LED: " + String(digitalRead(onLED)));
 }
 
-//Interrupt Functions
+//Interrupt functions
 void onButtonPressed (){
   sleepMode = true;
   reset_sleep_timer();
@@ -191,7 +213,6 @@ void tap_sensor_interrupt() {
 }
 
 
-
 void deep_sleep(){
 if (sleepMode && digitalRead(onButton) == HIGH) {
   if(!entered){
@@ -200,9 +221,7 @@ if (sleepMode && digitalRead(onButton) == HIGH) {
   entered = true;
   }
   buttonPressDuration = millis() - currenttime;
-  //Serial.println("buttonPressDuration: " + String(buttonPressDuration));
-  //Serial.println("currenttime: " + String(currenttime));
-  //Serial.println("LED: " + String(digitalRead(onLED)));
+  //Timer to go into deep sleep
   if (buttonPressDuration >= 2400){
     digitalWrite(onLEDgreen, HIGH);
   } else if(buttonPressDuration >= 1800){
@@ -236,9 +255,7 @@ void turn_off_periph(){
     digitalWrite(onLEDgreen, LOW);
     digitalWrite(alarmLEDred, LOW);
     digitalWrite(alarmLEDblue, LOW);
-
     analogWrite(buzzer, 0);
-
     turnOffDisplay();
 }
 
@@ -257,7 +274,7 @@ void tapping_sensor(){
   } else if( millis() >= awaketime + awaketimeduration){
       tapped = false;
     Serial.println("Entering light sleep...");
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)tap_sensor, HIGH);
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)tap_sensor, CHANGE);
     esp_sleep_enable_ext1_wakeup(1ULL << sensor_2, ESP_EXT1_WAKEUP_ANY_HIGH);
     esp_sleep_enable_ext1_wakeup(1ULL << sensor_1, ESP_EXT1_WAKEUP_ANY_HIGH);
     esp_sleep_enable_ext1_wakeup(1ULL << onButton, ESP_EXT1_WAKEUP_ANY_HIGH);
@@ -266,6 +283,7 @@ void tapping_sensor(){
     delay(100);
     esp_light_sleep_start();
     Serial.println("Woke up from light sleep");
+    turn_on_periph();
     }
 }
 }

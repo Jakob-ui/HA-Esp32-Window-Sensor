@@ -8,9 +8,8 @@
 
 void mqttsetup();
 void mqttloop();
-void sensorSetup(HABinarySensor sensor, int pin, bool state, String sensor_name, String sensor_device, String sensor_icon);
-void sensorUpdate(HABinarySensor sensor, int pin);
-
+void sensorSetup(HABinarySensor sensor, bool state, const char *sensor_name, const char *sensor_device, const char *sensor_icon);
+void sensorUpdate(HABinarySensor sensor, bool state);
 /*
 class HA
 {
