@@ -128,6 +128,7 @@ void setup() {
   sensorSetup(notification, NotiMode, name_notification, device_notification, icon_notification);
 }
 
+
 void loop() {
   mqttloop();
   deep_sleep();
