@@ -7,6 +7,7 @@
 #include "oled_Display.h"
 #include "Ha.h"
 #include "Config.h"
+#include "globals.h"
 
 void deep_sleep();
 void onButtonPressed();
@@ -79,6 +80,11 @@ int alarmtype = 0;
 //Json Daten
 struct Secrets config;
 
+//Battery voltage
+#define VOLTAGEPIN 26
+int batteryStatus;
+bool meassuredVoltage = false;
+
 //MQTT Sensors
 //Sensor 1
 HABinarySensor windowSensor_1 ("windowSensor_1");
@@ -113,6 +119,7 @@ void setup() {
   pinMode(sensor_1, INPUT_PULLDOWN);
   pinMode(sensor_2, INPUT_PULLDOWN);
   pinMode(tap_sensor, INPUT_PULLDOWN);
+  pinMode(VOLTAGEPIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(sensor_1), sensor1_interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(sensor_2), sensor2_interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(tap_sensor), tap_sensor_interrupt, CHANGE);
@@ -136,7 +143,6 @@ void loop() {
   delay(10);
   window_Sensors(window_1, buzzer, alarmAndNoti, alarmtriggered);
   window_Sensors(window_2, buzzer, alarmAndNoti, alarmtriggered);
-
   switch (alarmtype)
   {
   case 0: //Changes Mode to Disarmed
@@ -176,6 +182,11 @@ tapping_sensor(); //Run the light sleep function + wake up
 sensorUpdate(windowSensor_1, window_1);
 sensorUpdate(windowSensor_2, window_2);
 sensorUpdate(notification, NotiMode);
+
+if (meassuredVoltage == false) {
+  //batteryStatus = analogRead(VOLTAGEPIN); // Update the battery status
+  meassuredVoltage = true;
+}
 
 //---------------------------Debug-----------------------------
   //Serial.println("press:" +  String(digitalRead(alarmButton)));
@@ -288,6 +299,7 @@ void tapping_sensor(){
     delay(100);
     esp_light_sleep_start();
     Serial.println("Woke up from light sleep");
+    meassuredVoltage = false;
     turn_on_periph();
     }
 }

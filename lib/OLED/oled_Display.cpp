@@ -19,6 +19,10 @@ const unsigned char lowBatteryIcon [] PROGMEM = {
 	0x7f, 0xff, 0x40, 0x01, 0xc0, 0x1d, 0xc0, 0x1d, 0xc0, 0x1d, 0xc0, 0x1d, 0x40, 0x01, 0x7f, 0xff
 };
 
+const unsigned char deadBatteryIcon [] PROGMEM = {
+	0xff, 0xff, 0xe0, 0x3f, 0xc0, 0x33, 0xc0, 0xc3, 0xc3, 0x03, 0xcc, 0x03, 0xf0, 0x03, 0xff, 0xff
+};
+
 const unsigned char soundAn [] PROGMEM = {
 	0x00, 0x00, 0x01, 0x98, 0x03, 0x9c, 0x0f, 0x8c, 0x1f, 0x86, 0x7f, 0xb6, 0xff, 0xb7, 0xff, 0xb3, 
 	0xff, 0xb7, 0xff, 0xb6, 0x7f, 0xb6, 0x1f, 0x8e, 0x0f, 0x8c, 0x03, 0x9c, 0x01, 0x98, 0x00, 0x10
@@ -175,7 +179,16 @@ void drawLinesAndIcon(bool alarm) {
   // Draw the battery icon in the right-hand corner
   const int batteryIconWidth = 16;  // Width of the battery icon
   const int batteryIconHeight = 8;  // Height of the battery icon
-  display.drawBitmap(SCREEN_WIDTH - batteryIconWidth - 2, 2, fullBatteryIcon, batteryIconWidth, batteryIconHeight, WHITE);
+
+  if (batteryStatus > 4000) {
+        display.drawBitmap(SCREEN_WIDTH - batteryIconWidth - 2, 2, fullBatteryIcon, batteryIconWidth, batteryIconHeight, WHITE);
+    } else if (batteryStatus > 3700) {
+        display.drawBitmap(SCREEN_WIDTH - batteryIconWidth - 2, 2, middleBatteryIcon, batteryIconWidth, batteryIconHeight, WHITE);
+    } else if (batteryStatus > 3450) {
+        display.drawBitmap(SCREEN_WIDTH - batteryIconWidth - 2, 2, lowBatteryIcon, batteryIconWidth, batteryIconHeight, WHITE);
+    } else {
+        display.drawBitmap(SCREEN_WIDTH - batteryIconWidth - 2, 2, deadBatteryIcon, batteryIconWidth, batteryIconHeight, WHITE);
+    }
 
   const int soundIconWidth = 16;
   const int soundIconHeight = 16;

@@ -5,6 +5,7 @@
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
+#include "globals.h"
 
 void oledSetup();
 void updateDisplay();
