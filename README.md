@@ -4,7 +4,7 @@ This project is a smart alarm system for Home Assistant that uses various sensor
 
 ## Table of Contents
 - [Features](#features)
-- [What you need to build one](#hardware-requirements)
+- [What you need to build one](#hardware-list)
 - [3D Model](#3d-model)
 - [Installation](#installation)
 
@@ -38,3 +38,4 @@ This project is a smart alarm system for Home Assistant that uses various sensor
 - Clone this repository:
    ```sh
    git clone https://github.com/your-username/smart-alarm-system.git
+
