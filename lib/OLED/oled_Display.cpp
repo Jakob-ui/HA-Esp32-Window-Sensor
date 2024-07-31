@@ -180,11 +180,11 @@ void drawLinesAndIcon(bool alarm) {
   const int batteryIconWidth = 16;  // Width of the battery icon
   const int batteryIconHeight = 8;  // Height of the battery icon
 
-  if (batteryStatus > 4000) {
+  if (batteryStatus > 1000) {
         display.drawBitmap(SCREEN_WIDTH - batteryIconWidth - 2, 2, fullBatteryIcon, batteryIconWidth, batteryIconHeight, WHITE);
-    } else if (batteryStatus > 3700) {
+    } else if (batteryStatus > 800) {
         display.drawBitmap(SCREEN_WIDTH - batteryIconWidth - 2, 2, middleBatteryIcon, batteryIconWidth, batteryIconHeight, WHITE);
-    } else if (batteryStatus > 3450) {
+    } else if (batteryStatus > 600) {
         display.drawBitmap(SCREEN_WIDTH - batteryIconWidth - 2, 2, lowBatteryIcon, batteryIconWidth, batteryIconHeight, WHITE);
     } else {
         display.drawBitmap(SCREEN_WIDTH - batteryIconWidth - 2, 2, deadBatteryIcon, batteryIconWidth, batteryIconHeight, WHITE);

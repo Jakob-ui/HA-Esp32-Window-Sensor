@@ -21,14 +21,14 @@ void tapping_sensor();
 void reset_sleep_timer();
 
 //Buzzer
-#define buzzer 16
+#define buzzer 18
 
 //Buttons
-// ON Button
+// ON Butto
 #define onButton 15
 
 // ALARM Button
-#define alarmButton  23
+#define alarmButton  4
 bool alarmState = false;
 bool previousalarmState = false;
 volatile int InterruptalarmButtonstate = 0;
@@ -46,8 +46,8 @@ bool alarmAndNoti = false;
 #define onLEDgreen 19
 bool onLEDstate = HIGH;
 //Alarm LED
-#define alarmLEDred 4
-#define alarmLEDblue 17
+#define alarmLEDred 27
+#define alarmLEDblue 13
 
 //Sleep Modes
 //Deep Sleep Mode
@@ -59,19 +59,19 @@ bool entered = false;
 bool resetentered = false;
 
 //Light Sleep + Wake up on Tap
-#define tap_sensor 2
+#define tap_sensor 32
 bool tapped = true;
 unsigned long awaketime;
 int awaketimeduration = 10000;
 bool resettapped = true;
-bool lightsleepmodeActivated = false;
+bool lightsleepmodeActivated = true;
 
-//Sensors#
+//Sensors
 //Sensor 1
-#define sensor_1 5
+#define sensor_1 14
 bool window_1 = false;
 //Sensor 2
-#define sensor_2 18
+#define sensor_2 12
 bool window_2 = false;
 
 //state machine
@@ -81,7 +81,7 @@ int alarmtype = 0;
 struct Secrets config;
 
 //Battery voltage
-#define VOLTAGEPIN 26
+#define VOLTAGEPIN 35
 int batteryStatus;
 bool meassuredVoltage = false;
 
@@ -114,11 +114,11 @@ void setup() {
   pinMode(onLEDgreen, OUTPUT);
   pinMode(alarmLEDred, OUTPUT); 
   pinMode(alarmLEDblue, OUTPUT);
-  pinMode(onButton, INPUT_PULLDOWN);
-  pinMode(alarmButton, INPUT_PULLDOWN);
-  pinMode(sensor_1, INPUT_PULLDOWN);
-  pinMode(sensor_2, INPUT_PULLDOWN);
-  pinMode(tap_sensor, INPUT_PULLDOWN);
+  pinMode(onButton, INPUT);
+  pinMode(alarmButton, INPUT);
+  pinMode(sensor_1, INPUT);
+  pinMode(sensor_2, INPUT);
+  pinMode(tap_sensor, INPUT);
   pinMode(VOLTAGEPIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(sensor_1), sensor1_interrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(sensor_2), sensor2_interrupt, CHANGE);
@@ -140,7 +140,6 @@ void loop() {
   mqttloop();
   deep_sleep();
   buttons(alarmButton, alarmState, InterruptalarmButtonstate, alarmButtonDebouncetime, lastalarmButtonState, alarmButtonlastPress);
-  delay(10);
   window_Sensors(window_1, buzzer, alarmAndNoti, alarmtriggered);
   window_Sensors(window_2, buzzer, alarmAndNoti, alarmtriggered);
   switch (alarmtype)
@@ -184,20 +183,23 @@ sensorUpdate(windowSensor_2, window_2);
 sensorUpdate(notification, NotiMode);
 
 if (meassuredVoltage == false) {
-  //batteryStatus = analogRead(VOLTAGEPIN); // Update the battery status
+  batteryStatus = analogRead(VOLTAGEPIN); // Update the battery status
   meassuredVoltage = true;
 }
 
 //---------------------------Debug-----------------------------
   //Serial.println("press:" +  String(digitalRead(alarmButton)));
-  //Serial.println("lastpress: " + String(lastonButtonState));
-  //Serial.println("sensor1: " + String(window_1));
-  //Serial.println(digitalRead(sensor_1));
+  //Serial.println("ONpress:" +  String(digitalRead(onButton)));
+  //Serial.println("sensor1: " + String(digitalRead(sensor_1)));
+  //Serial.println("sensor2: " + String(digitalRead(sensor_2)));
+  Serial.println("tap_sensor: " + String(digitalRead(tap_sensor)));
+  //Serial.println("BAttery: " + String(analogRead(VOLTAGEPIN)));
   //Serial.println("sensor2: " + String(window_2));
-  //Serial.println("sensor3: " + String(tapped));
+  //Serial.println("sensor1: " + String(window_1));
   //Serial.println("buttonPressDuration: " + String(buttonPressDuration));
   //Serial.println("currenttime: " + String(currenttime));
   //Serial.println("LED: " + String(digitalRead(onLED)));
+  //Serial.println("lastpress: " + String(lastonButtonState));
 }
 
 //Interrupt functions
@@ -205,20 +207,32 @@ void onButtonPressed (){
   sleepMode = true;
   reset_sleep_timer();
   alarmtriggered = false;
+  tapped = true;
+  resettapped = true;
+  reset_sleep_timer();
 }
 
 void alarmButtonPressed (){
   InterruptalarmButtonstate = 1;
   reset_sleep_timer();
   alarmtriggered = false;
+  tapped = true;
+  resettapped = true;
+  reset_sleep_timer();
 }
 
 void sensor1_interrupt() {
-window_1 = !window_1; 
+window_1 = !window_1;
+tapped = true;
+  resettapped = true;
+  reset_sleep_timer();
 }
 
 void sensor2_interrupt() {
 window_2 = !window_2;
+tapped = true;
+  resettapped = true;
+  reset_sleep_timer();
 }
 
 void tap_sensor_interrupt() {
@@ -282,25 +296,35 @@ void turn_on_periph(){
 
 
 void tapping_sensor(){
+  bool entered = false;
   if(lightsleepmodeActivated){ //---------------------------------- To run light sleep Mode delete Line -----------------------------
   if(tapped && resettapped){
     awaketime = millis();
     resettapped = false;
-    turn_on_periph();
-  } else if( millis() >= awaketime + awaketimeduration){
-      tapped = false;
-    Serial.println("Entering light sleep...");
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)tap_sensor, CHANGE);
-    esp_sleep_enable_ext1_wakeup(1ULL << sensor_2, ESP_EXT1_WAKEUP_ANY_HIGH);
-    esp_sleep_enable_ext1_wakeup(1ULL << sensor_1, ESP_EXT1_WAKEUP_ANY_HIGH);
-    esp_sleep_enable_ext1_wakeup(1ULL << onButton, ESP_EXT1_WAKEUP_ANY_HIGH);
-    esp_sleep_enable_ext1_wakeup(1ULL << alarmButton, ESP_EXT1_WAKEUP_ANY_HIGH);
-    turn_off_periph();
-    delay(100);
-    esp_light_sleep_start();
+    entered = false;
     Serial.println("Woke up from light sleep");
-    meassuredVoltage = false;
     turn_on_periph();
+  } else if( millis() >= awaketime + awaketimeduration && entered == false){
+      tapped = false;
+      entered = true;
+      Serial.println("Entering light sleep...");
+      turn_off_periph();
+      meassuredVoltage = false;
+      /*// Enable wakeup from external signals
+        esp_sleep_enable_ext0_wakeup((gpio_num_t)tap_sensor, CHANGE);
+        esp_sleep_enable_ext0_wakeup((gpio_num_t)sensor_2, CHANGE);
+        esp_sleep_enable_ext0_wakeup((gpio_num_t)sensor_1, CHANGE);
+
+        // Enable wakeup from button presses
+        esp_sleep_enable_ext1_wakeup((1ULL << onButton) | (1ULL << alarmButton), ESP_EXT1_WAKEUP_ANY_HIGH);
+
+      turn_off_periph();
+      delay(100);
+      esp_light_sleep_start();
+      Serial.println("Woke up from light sleep");
+      meassuredVoltage = false;
+      turn_on_periph();
+      */
     }
 }
 }
