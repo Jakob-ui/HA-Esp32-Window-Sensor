@@ -37,5 +37,5 @@ This project is a smart alarm system for Home Assistant that uses various sensor
 ## Installation
 - Clone this repository:
    ```sh
-   git clone https://github.com/your-username/smart-alarm-system.git
+   git clone https://github.com/Jakob-ui/HA-Esp32-Window-Sensor.git
 
