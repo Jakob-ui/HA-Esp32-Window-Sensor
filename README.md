@@ -34,8 +34,9 @@ This project is a smart alarm system for Home Assistant that uses various sensor
 
 ## Result
 <div style="display: flex;">
-    <img src= /pictures/IMG_20240820_120942.jpg alt="product" width="200"/>
-    <img src= /pictures/IMG_20240730_235919.jpg alt="product" width="200"/>
+    <img src= /pictures/IMG_20240820_120942.jpg alt="product" width="250"/>
+    <img src= /pictures/IMG_20240730_235919.jpg alt="product" width="250"/>
+    <img src= /pictures/IMG_20240820_120929.jpg alt="product" width="250"/>
 </div>
 
 
