@@ -35,7 +35,7 @@ This project is a smart alarm system for Home Assistant that uses various sensor
 ## Result
 ![alt text](/pictures/IMG_20240730_235919.jpg)
 ![alt text](/pictures/IMG_20240820_120942.jpg)
-
+<img src= /pictures/IMG_20240730_235919.jpg alt="product" width="200"/>
 
 
 ## Installation
