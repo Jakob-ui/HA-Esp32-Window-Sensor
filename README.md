@@ -33,13 +33,9 @@ This project is a smart alarm system for Home Assistant that uses various sensor
 - [On Thingiverse](https://www.thingiverse.com/thing:6715594)
 
 ## Result
-<div class="row">
-  <div class="column">
+<div style="display: flex;">
     <img src= /pictures/IMG_20240820_120942.jpg alt="product" width="200"/>
-  </div>
-  <div class="column">
     <img src= /pictures/IMG_20240730_235919.jpg alt="product" width="200"/>
-  </div>
 </div>
 
 
